@@ -1,53 +1,79 @@
 import {
-  Approval as ApprovalEvent,
-  ApprovalForAll as ApprovalForAllEvent,
-  OwnershipTransferred as OwnershipTransferredEvent,
+  Token as TokenContract,
   Transfer as TransferEvent
 } from "../generated/Token/Token"
+
 import {
-  Approval,
-  ApprovalForAll,
-  OwnershipTransferred,
-  Transfer
-} from "../generated/schema"
+  Token, User
+} from '../generated/schema'
 
-export function handleApproval(event: ApprovalEvent): void {
-  let entity = new Approval(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.owner = event.params.owner
-  entity.approved = event.params.approved
-  entity.tokenId = event.params.tokenId
-  entity.save()
-}
+import { ipfs, json, JSONValue } from '@graphprotocol/graph-ts'
 
-export function handleApprovalForAll(event: ApprovalForAllEvent): void {
-  let entity = new ApprovalForAll(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.owner = event.params.owner
-  entity.operator = event.params.operator
-  entity.approved = event.params.approved
-  entity.save()
-}
+export function handleTransferApe(event: TransferEvent): void {
 
-export function handleOwnershipTransferred(
-  event: OwnershipTransferredEvent
-): void {
-  let entity = new OwnershipTransferred(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.previousOwner = event.params.previousOwner
-  entity.newOwner = event.params.newOwner
-  entity.save()
-}
+  let baseHash = "QmeSjSinHpPnmXmspMjwiXyN6zS4E9zccariGR3jxcaWtq"
+  let fullIPFSURI = "ipfs.io/ipfs/" + baseHash + "/"
+  var token = Token.load(event.params.tokenId.toString());
 
-export function handleTransfer(event: TransferEvent): void {
-  let entity = new Transfer(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.from = event.params.from
-  entity.to = event.params.to
-  entity.tokenId = event.params.tokenId
-  entity.save()
+  if (!token) {
+    token = new Token(event.params.tokenId.toString());
+    token.creator = event.params.to.toHexString();
+    token.tokenID = event.params.tokenId;
+    token.createdAtTimestamp = event.block.timestamp;
+    token.collection = "Bored Ape Yacht Club"
+  }
+  
+  token.updatedAtTimestamp = event.block.timestamp;
+  let tokenContract = TokenContract.bind(event.address);
+
+  let baseURI = tokenContract.baseURI()
+  let contentURI = tokenContract.tokenURI(event.params.tokenId);
+
+  if (baseURI.includes('https')) {
+    baseURI = fullIPFSURI;
+  } else if (baseURI.includes('ipfs')) {
+    let hash = baseURI.split('ipfs://').join('')
+    baseURI = "ipfs.io/ipfs" + hash
+  }
+
+  if (contentURI.includes('https')) {
+    contentURI = fullIPFSURI + event.params.tokenId.toString();
+  } else {
+    let hash = contentURI.split('ipfs://').join('')
+    contentURI = "ipfs.io/ipfs/" + hash + event.params.tokenId.toString();
+  }
+
+  token.contentURI = contentURI;
+  token.baseURI = baseURI;
+
+  if (contentURI != "") {
+    let hash = contentURI.split('ipfs.io/ipfs/').join('')
+    let data = ipfs.cat(hash)
+
+    if (!data) return
+    let value = json.fromBytes(data).toObject()
+    if (data) {
+      var image = value.get('image')
+      if (image) {
+        let h = image.toString()
+        let imageHash = h.split('ipfs://').join('')
+        token.imageURI = 'ipfs.io/ipfs/' + imageHash
+      }
+
+      let attributes: JSONValue[]
+      let atts = value.get('attributes')
+      if (atts) {
+        attributes = atts.toArray()
+      }
+    }
+  }
+
+  token.owner = event.params.to.toHexString();
+  token.save();
+
+  let user = User.load(event.params.to.toHexString());
+  if (!user) {
+    user = new User(event.params.to.toHexString());
+    user.save();
+  }
 }

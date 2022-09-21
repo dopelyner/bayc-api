@@ -11,4 +11,10 @@ graph auth --product hosted-service <ACCESS_TOKEN>
 ```
 ```
 graph deploy --product hosted-service <username/subgraph-name>
-```# bayc-api
+```
+
+Deployed to https://thegraph.com/explorer/subgraph/dopelyner/bayc-api 
+
+Queries (HTTP): https://api.thegraph.com/subgraphs/name/dopelyner/bayc-api
+
+Graph Explorer: https://thegraph.com/hosted-service/subgraph/dopelyner/bayc-api
