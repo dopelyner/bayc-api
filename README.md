@@ -1,5 +1,7 @@
 # Bored Ape Yacht Club subgraph
 
+![Bored Ape Yach Club Subgraph](bayc.png)
+
 ```
 graph init --contract-name <CONTRACT_NAME> \
 --index-events \
