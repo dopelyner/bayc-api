@@ -1,21 +1,22 @@
 # Bored Ape Yacht Club subgraph
 
-![Bored Ape Yach Club Subgraph](bayc.png)
+![Banner](bayc.png)
 
 ```
 npm install -g @graphprotocol/graph-cli
 ```
 ```
-graph init --contract-name <CONTRACT_NAME> \
+graph init \ 
+--contract-name <CONTRACT_NAME> \ 
 --index-events \
---product hosted-studio \
+--product hosted-studio \ 
 --from-contract <Contract_ADDRESS>
 ```
 ```
-graph auth --product hosted-service <ACCESS_TOKEN>
+$ graph auth --product hosted-service <ACCESS_TOKEN>
 ```
 ```
-graph deploy --product hosted-service <username/subgraph-name>
+$ graph deploy --product hosted-service <username/subgraph-name>
 ```
 
 Deployed to https://thegraph.com/explorer/subgraph/dopelyner/bayc-api 
