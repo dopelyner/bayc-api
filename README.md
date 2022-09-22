@@ -3,6 +3,9 @@
 ![Bored Ape Yach Club Subgraph](bayc.png)
 
 ```
+npm install -g @graphprotocol/graph-cli
+```
+```
 graph init --contract-name <CONTRACT_NAME> \
 --index-events \
 --product hosted-studio \
